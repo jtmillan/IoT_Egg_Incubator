@@ -1,272 +1,84 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>ESP32 Temperature & Humidity Monitor</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f9f9f9;
-      margin: 0;
-      padding: 0 10px 40px;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      justify-content: space-between;
-    }
-
-    h1 {
-      margin-top: 30px;
-      font-size: 1.8rem;
-    }
-
-    /* Login */
-    #loginForm {
-      max-width: 400px;
-      margin: 80px auto 20px;
-      background: white;
-      padding: 30px 20px;
-      border-radius: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    #loginForm input {
-      width: 100%;
-      padding: 12px 15px;
-      margin: 10px 0 20px;
-      font-size: 1rem;
-      border: 1.5px solid #ccc;
-      border-radius: 10px;
-      box-sizing: border-box;
-      outline-offset: 2px;
-      transition: border-color 0.3s ease;
-    }
-
-    #loginForm input:focus {
-      border-color: #1e88e5;
-    }
-
-    #loginForm button {
-      width: 100%;
-      background-color: #1e88e5;
-      color: white;
-      padding: 12px;
-      font-size: 18px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-
-    #loginForm button:hover {
-      background-color: #1565c0;
-    }
-
-    /* Dashboard */
-    #dashboard {
-      display: none;
-    }
-
-    .sensor-container {
-      max-width: 700px;
-      margin: 30px auto;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-    }
-
-    .sensor-card {
-      background-color: white;
-      padding: 30px 20px;
-      border-radius: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 250px;
-      box-sizing: border-box;
-    }
-
-    .sensor-card h2 {
-      margin: 0 0 15px;
-      font-size: 1.4rem;
-    }
-
-    .sensor-value {
-      font-size: 2.8rem;
-      font-weight: bold;
-      margin: 10px 0;
-    }
-
-    .sensor-unit {
-      font-size: 1.1rem;
-      color: #666;
-    }
-
-    #temperatureValue {
-      color: #e65100;
-    }
-
-    #humidityValue {
-      color: #1565c0;
-    }
-
-    #lastUpdated {
-      margin-top: 20px;
-      color: #666;
-      font-size: 0.9rem;
-    }
-
-    #connectionStatus {
-      margin-top: 10px;
-      font-size: 0.95rem;
-      color: #666;
-    }
-
-    #logoutBtn {
-      max-width: 300px;
-      width: 90%;
-      padding: 12px 25px;
-      font-size: 16px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin: 25px auto 15px;
-      display: block;
-      color: white;
-      background-color: #555;
-      transition: opacity 0.3s ease;
-    }
-
-    #logoutBtn:hover {
-      opacity: 0.8;
-    }
-
-    /* Responsive */
-    @media (max-width: 700px) {
-      .sensor-card {
-        width: 90%;
-        max-width: 320px;
-      }
-
-      body {
-        padding: 0 10px 60px;
-      }
-    }
-
-    footer {
-      font-size: 0.9rem;
-      color: #666;
-      padding: 10px 0;
-      margin-top: 40px;
-    }
-  </style>
-
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Egg Incubator | Control Dashboard</title>
+<style>
+:root{font-family:Inter,system-ui,Arial,sans-serif;color:#172b3b;background:#f3f7f9}
+*{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{cursor:pointer}
+header{background:#102e39;color:white;padding:18px max(20px,calc((100vw - 1150px)/2));display:flex;align-items:center;justify-content:space-between;gap:12px}
+header h1{margin:0;font-size:1.35rem}header small{color:#b7d0d8}
+main{max-width:1150px;margin:25px auto;padding:0 18px 50px}
+.card{background:white;border:1px solid #e0e9ee;border-radius:17px;padding:22px;box-shadow:0 5px 22px #17364b0a}
+h2{margin:0 0 16px;font-size:1.12rem}h3{margin:0 0 12px;font-size:1rem}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin-bottom:17px}
+.value{font-size:2.25rem;font-weight:750;letter-spacing:-.04em;margin:10px 0}.muted{color:#657887;font-size:.87rem}
+.section{margin:22px 0 14px}.row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.pill{display:inline-block;padding:6px 10px;border-radius:30px;background:#eaf0f3;color:#506676;font-size:.8rem;font-weight:700}
+.good{background:#e2f6eb;color:#12643d}.bad{background:#ffe9e8;color:#9c2727}.warn{background:#fff3d6;color:#885a00}
+.relay{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e9eef1;padding:13px 0}
+.relay:last-child{border:0}.relay strong{font-size:.94rem}
+.two{display:grid;grid-template-columns:1.4fr 1fr;gap:17px}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+label{display:block;font-size:.88rem;font-weight:650;margin-bottom:7px}
+input{width:100%;border:1px solid #bccdd6;border-radius:9px;padding:12px;background:white}
+input:focus{outline:2px solid #72b4c7;outline-offset:1px}
+button{border:0;border-radius:9px;padding:11px 17px;background:#087b83;color:white;font-weight:700}
+button.secondary{background:#e7eff2;color:#254554}button:disabled{opacity:.5;cursor:not-allowed}
+.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:19px}
+#login{max-width:420px;margin:9vh auto}#login input{margin-bottom:15px}
+#app{display:none}#logout{background:#34505e;padding:9px 14px}
+.message{min-height:23px;margin:13px 0;color:#496779;font-size:.9rem}
+footer{text-align:center;padding:22px;color:#738492;font-size:.83rem}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:1fr}}
+@media(max-width:520px){.grid,.fields{grid-template-columns:1fr}header h1{font-size:1.05rem}.value{font-size:2rem}}
+</style>
 </head>
-
 <body>
-
-  <h1>ESP32 Temperature & Humidity Monitor</h1>
-
-  <!-- Login form -->
-
-  <div id="loginForm">
-
-```
-<input
-  type="email"
-  id="email"
-  placeholder="Enter Email"
-  required
-/>
-
-<input
-  type="password"
-  id="password"
-  placeholder="Enter Password"
-  required
-/>
-
-<button id="loginBtn">Login</button>
-```
-
-  </div>
-
-  <!-- Dashboard -->
-
-  <div id="dashboard">
-
-```
-<div class="sensor-container">
-
-  <!-- Temperature -->
-  <div class="sensor-card">
-
-    <h2>Temperature</h2>
-
-    <div class="sensor-value" id="temperatureValue">
-      --.- 
-    </div>
-
-    <div class="sensor-unit">
-      °C
-    </div>
-
-  </div>
-
-  <!-- Humidity -->
-  <div class="sensor-card">
-
-    <h2>Humidity</h2>
-
-    <div class="sensor-value" id="humidityValue">
-      --.-
-    </div>
-
-    <div class="sensor-unit">
-      %
-    </div>
-
-  </div>
-
+<header><div><h1>🥚 Egg Incubator</h1><small>ESP32 · Firebase control dashboard</small></div><div class="row"><span id="connection" class="pill">Not connected</span><button id="logout" hidden>Log out</button></div></header>
+<main>
+<section id="login" class="card"><h2>Sign in</h2><p class="muted">Use an authorized Firebase Authentication account.</p>
+<form id="loginForm"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required>
+<label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required>
+<button type="submit" id="loginBtn">Sign in</button><p id="loginMessage" class="message" role="status"></p></form></section>
+<div id="app">
+<div class="row section"><h2>Live monitoring</h2><span class="muted" id="lastUpdated">Last database update received: —</span></div>
+<div class="grid">
+<div class="card"><div class="muted">🌡️ Temperature</div><div id="temperature" class="value">—</div><div class="muted">°C · live reading</div></div>
+<div class="card"><div class="muted">💧 Humidity</div><div id="humidity" class="value">—</div><div class="muted">% RH · live reading</div></div>
+<div class="card"><div class="muted">🥚 Incubation</div><div id="day" class="value">—</div><div class="muted">Day · powered-on runtime</div></div>
+<div class="card"><div class="muted">⏱️ Running hours</div><div id="hours" class="value">—</div><div class="muted">Accumulated hours</div></div>
 </div>
-
-<div id="connectionStatus">
-  Connecting to Firebase...
-</div>
-
-<div id="lastUpdated">
-  Last updated: --
-</div>
-
-<button id="logoutBtn">
-  Logout
-</button>
-```
-
-  </div>
-
-  <footer>
-    Created by JT Millan
-  </footer>
-
-  <!-- Firebase SDKs -->
-
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
-
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-
-  <script>
-
-    // ==========================================
-    // Firebase Configuration
-    // ==========================================
-
-    const firebaseConfig = {
+<div class="two">
+<section class="card"><div class="row"><h2>Settings</h2><span class="pill">Two-way synchronization</span></div>
+<p class="muted">Adjust values and save all six together. The ESP32 polls Firebase about every 10 seconds, validates changes, and saves accepted settings to flash.</p>
+<form id="settingsForm"><div class="fields">
+<div><label for="targetTemp">Target temperature (°C)</label><input id="targetTemp" type="number" min="30" max="40" step="0.1" required></div>
+<div><label for="targetHumidity">Target humidity (%)</label><input id="targetHumidity" type="number" min="20" max="90" step="1" required></div>
+<div><label for="tempThreshold">Temperature threshold (°C)</label><input id="tempThreshold" type="number" min="0.1" max="5" step="0.1" required></div>
+<div><label for="humidityThreshold">Humidity alarm threshold (%)</label><input id="humidityThreshold" type="number" min="1" max="30" step="1" required></div>
+<div><label for="turnerFrequency">Turner frequency (minutes)</label><input id="turnerFrequency" type="number" min="1" max="1440" step="1" required></div>
+<div><label for="turnerDuration">Turner duration (minutes)</label><input id="turnerDuration" type="number" min="1" max="60" step="1" required></div>
+</div><div class="actions"><button id="save" type="submit" disabled>Save settings</button><button id="discard" class="secondary" type="button" disabled>Discard edits</button><span id="settingsStatus" class="muted" role="status">Loading settings…</span></div></form>
+<p class="muted">The displayed values may change when the physical buttons are used. Saving here does not itself prove that the ESP32 has applied the change; verify the device or its subsequent status.</p>
+</section>
+<div>
+<section class="card"><h2>Relay status</h2><div id="relays">
+<div class="relay"><strong>🔥 Heater</strong><span id="heater" class="pill">Unknown</span></div>
+<div class="relay"><strong>🌀 Fan</strong><span id="fan" class="pill">Unknown</span></div>
+<div class="relay"><strong>🔄 Turner</strong><span id="turner" class="pill">Unknown</span></div>
+<div class="relay"><strong>💡 LED</strong><span id="led" class="pill">Unknown</span></div>
+</div><p class="muted">Status only. The LED is controlled by its physical button in v4.</p></section>
+<section class="card" style="margin-top:17px"><h2>Alerts</h2><div class="row"><strong>Humidity</strong><span id="humidityAlarm" class="pill">Unknown</span></div><p class="muted">An alert indicates humidity is outside the target ± threshold. There is no humidity actuator in v4.</p></section>
+<section class="card" style="margin-top:17px"><h2>Connection information</h2><p class="muted" id="connectionDetail">Waiting for Firebase…</p><p class="muted">Firebase connectivity does not prove the ESP32 is online. v4 does not publish a heartbeat or device-online timestamp; cached values may be stale.</p></section>
+</div></div>
+</div></main><footer>Created by JTMillan · Egg Incubator v4 dashboard</footer>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+<script>
+"use strict";
+const firebaseConfig = {
       apiKey: "AIzaSyDBr6sM8bcGd0_l4YHsp7d66qIZRaU3O1k",
       authDomain: "iot-egg-incubator-c8949.firebaseapp.com",
       databaseURL: "https://iot-egg-incubator-c8949-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -275,270 +87,64 @@
       messagingSenderId: "948660282083",
       appId: "1:948660282083:web:f196fef5a98bde8e921bd6"
     };
-
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-
-
-    // ==========================================
-    // Login Credentials
-    // ==========================================
-
-    const allowedEmail = "test@gmail.com";
-    const allowedPassword = "00000000";
-
-
-    // ==========================================
-    // HTML Elements
-    // ==========================================
-
-    const loginForm =
-      document.getElementById("loginForm");
-
-    const dashboard =
-      document.getElementById("dashboard");
-
-    const loginBtn =
-      document.getElementById("loginBtn");
-
-    const temperatureValue =
-      document.getElementById("temperatureValue");
-
-    const humidityValue =
-      document.getElementById("humidityValue");
-
-    const connectionStatus =
-      document.getElementById("connectionStatus");
-
-    const lastUpdated =
-      document.getElementById("lastUpdated");
-
-
-    // ==========================================
-    // Login
-    // ==========================================
-
-    loginBtn.addEventListener("click", () => {
-
-      const email =
-        document.getElementById("email").value.trim();
-
-      const password =
-        document.getElementById("password").value;
-
-
-      if (!email || !password) {
-
-        alert("Please enter email and password.");
-
-        return;
-      }
-
-
-      // Check credentials
-      if (
-        email === allowedEmail &&
-        password === allowedPassword
-      ) {
-
-        // Firebase Authentication
-        firebase.auth()
-          .signInWithEmailAndPassword(
-            email,
-            password
-          )
-
-          .then(userCredential => {
-
-            console.log(
-              "Signed in as",
-              userCredential.user.email
-            );
-
-            loginForm.style.display = "none";
-
-            dashboard.style.display = "block";
-
-            startMonitoring();
-
-          })
-
-          .catch(error => {
-
-            alert(
-              "Firebase login failed: " +
-              error.message
-            );
-
-          });
-
-      } else {
-
-        alert("Invalid email or password.");
-
-      }
-
-    });
-
-
-    // ==========================================
-    // Start Temperature & Humidity Monitoring
-    // ==========================================
-
-    function startMonitoring() {
-
-      const db = firebase.database();
-
-
-      // ==========================================
-      // Temperature Listener
-      // Firebase path: /temp
-      // ==========================================
-
-      const temperatureRef =
-        db.ref("/temp");
-
-
-      temperatureRef.on("value", snapshot => {
-
-        const temperature =
-          snapshot.val();
-
-
-        if (temperature !== null) {
-
-          temperatureValue.innerText =
-            Number(temperature).toFixed(1);
-
-          updateLastUpdated();
-
-        }
-
-      });
-
-
-      // ==========================================
-      // Humidity Listener
-      // Firebase path: /hum
-      // ==========================================
-
-      const humidityRef =
-        db.ref("/hum");
-
-
-      humidityRef.on("value", snapshot => {
-
-        const humidity =
-          snapshot.val();
-
-
-        if (humidity !== null) {
-
-          humidityValue.innerText =
-            Number(humidity).toFixed(1);
-
-          updateLastUpdated();
-
-        }
-
-      });
-
-
-      // ==========================================
-      // Firebase Connection Status
-      // ==========================================
-
-      const connectedRef =
-        db.ref(".info/connected");
-
-
-      connectedRef.on("value", snapshot => {
-
-        if (snapshot.val() === true) {
-
-          connectionStatus.innerText =
-            "● Connected to Firebase";
-
-          connectionStatus.style.color =
-            "green";
-
-        } else {
-
-          connectionStatus.innerText =
-            "● Disconnected from Firebase";
-
-          connectionStatus.style.color =
-            "red";
-
-        }
-
-      });
-
-    }
-
-
-    // ==========================================
-    // Last Updated Time
-    // ==========================================
-
-    function updateLastUpdated() {
-
-      const now =
-        new Date();
-
-
-      lastUpdated.innerText =
-        "Last updated: " +
-        now.toLocaleTimeString();
-
-    }
-
-
-    // ==========================================
-    // Logout
-    // ==========================================
-
-    document.getElementById("logoutBtn")
-      .onclick = () => {
-
-        firebase.auth()
-          .signOut()
-
-          .then(() => {
-
-            dashboard.style.display = "none";
-
-            loginForm.style.display = "block";
-
-            document.getElementById("email").value = "";
-
-            document.getElementById("password").value = "";
-
-            temperatureValue.innerText = "--.-";
-
-            humidityValue.innerText = "--.-";
-
-            connectionStatus.innerText =
-              "Connecting to Firebase...";
-
-            lastUpdated.innerText =
-              "Last updated: --";
-
-          })
-
-          .catch(error => {
-
-            alert(
-              "Logout failed: " +
-              error.message
-            );
-
-          });
-
-      };
-
-  </script>
-
-</body>
-</html>
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database(),auth=firebase.auth();
+const $=id=>document.getElementById(id);
+const names=["targetTemp","targetHumidity","tempThreshold","humidityThreshold","turnerFrequency","turnerDuration"];
+const limits={targetTemp:[30,40],targetHumidity:[20,90],tempThreshold:[0.1,5],humidityThreshold:[1,30],turnerFrequency:[1,1440],turnerDuration:[1,60]};
+const defaults={targetTemp:37.8,targetHumidity:60,tempThreshold:0.1,humidityThreshold:5,turnerFrequency:90,turnerDuration:2};
+let subscriptions=[],settings=null,editing=false,saving=false,connected=false;
+function text(id,value){$(id).textContent=value}
+function badge(id,value,kind){text(id,value);$(id).className="pill "+(kind||"")}
+function watch(path,fn){const ref=db.ref(path);ref.on("value",fn,e=>text("connectionDetail","Database access error: "+e.message));subscriptions.push(()=>ref.off("value",fn))}
+function clearSubscriptions(){subscriptions.forEach(fn=>fn());subscriptions=[]}
+function showNumber(id,v,digits=1){text(id,typeof v==="number"&&Number.isFinite(v)?v.toFixed(digits):"—")}
+function applySettings(){if(!settings)return;names.forEach(k=>$(k).value=settings[k]);editing=false;updateButtons();text("settingsStatus","Settings loaded from Firebase.")}
+function updateButtons(){const enabled=connected&&!!settings&&!saving;$("save").disabled=!enabled;$("discard").disabled=!enabled}
+function settingsValid(s){return names.every(k=>typeof s[k]==="number"&&Number.isFinite(s[k])&&s[k]>=limits[k][0]&&s[k]<=limits[k][1])&&
+Number.isInteger(s.turnerFrequency)&&Number.isInteger(s.turnerDuration)&&s.turnerDuration<s.turnerFrequency}
+function start(){
+clearSubscriptions();settings=null;editing=false;updateButtons();
+watch(".info/connected",snap=>{connected=snap.val()===true;badge("connection",connected?"Firebase connected":"Firebase disconnected",connected?"good":"bad");text("connectionDetail",connected?"Connected to Firebase. ESP32 online status is not available.":"Firebase disconnected; displayed data may be cached.");updateButtons()});
+watch("/temp",snap=>{showNumber("temperature",snap.val());if(snap.exists())updated()});
+watch("/hum",snap=>{showNumber("humidity",snap.val());if(snap.exists())updated()});
+watch("/incubation",snap=>{const v=snap.val()||{};text("day",Number.isInteger(v.currentDay)?v.currentDay:"—");text("hours",Number.isFinite(v.runningHours)?v.runningHours:"—")});
+watch("/status",snap=>{const v=snap.val()||{};["heater","fan","turner","led"].forEach(k=>{const b=v[k];badge(k,typeof b==="boolean"?(b?"ON":"OFF"):"Unknown",typeof b==="boolean"?(b?"good":""):"")})});
+watch("/alarm/humidity",snap=>{const v=snap.val();badge("humidityAlarm",typeof v==="boolean"?(v?"ALARM":"Normal"):"Unknown",typeof v==="boolean"?(v?"bad":"good"):"")});
+watch("/settings",snap=>{const v=snap.val();if(!v||!settingsValid(v)){settings=null;text("settingsStatus","Settings missing or invalid. Create the complete /settings object in Firebase.");updateButtons();return}
+settings=v;if(saving){text("settingsStatus","Settings written to Firebase; awaiting ESP32 polling.");return}
+if(editing){text("settingsStatus","Firebase settings changed while you are editing. Save to overwrite with your form, or discard to reload.");updateButtons();return}
+applySettings()});
+}
+function updated(){text("lastUpdated","Last database update received: "+new Date().toLocaleTimeString()+" (not a device timestamp)")}
+names.forEach(k=>$(k).addEventListener("input",()=>{editing=true;text("settingsStatus","Unsaved local edits.");updateButtons()}));
+$("discard").addEventListener("click",()=>{if(settings)applySettings()});
+$("settingsForm").addEventListener("submit",async e=>{
+e.preventDefault();if(!settings||!connected||saving)return;
+const next={};names.forEach(k=>next[k]=Number($(k).value));
+if(!settingsValid(next)){text("settingsStatus","Invalid settings: check ranges, whole-minute turner values, and ensure duration < frequency.");return}
+saving=true;updateButtons();text("settingsStatus","Writing settings to Firebase…");
+try{
+const result=await db.ref("/settings").transaction(current=>{
+// Update the six fields together without replacing unrelated child fields.
+if(!current||!settingsValid(current))return;
+return {...current,...next};
+},undefined,false);
+if(!result.committed)throw new Error("The settings object is missing or invalid.");
+settings=result.snapshot.val();editing=false;applySettings();
+text("settingsStatus","Saved to Firebase. ESP32 acceptance is not independently acknowledged.");
+}catch(err){text("settingsStatus","Save failed: "+err.message)}
+finally{saving=false;updateButtons()}
+});
+$("loginForm").addEventListener("submit",async e=>{e.preventDefault();$("loginBtn").disabled=true;text("loginMessage","Signing in…");
+try{await auth.signInWithEmailAndPassword($("email").value.trim(),$("password").value)}
+catch(err){text("loginMessage","Sign-in failed: "+err.message)}
+finally{$("loginBtn").disabled=false}});
+$("logout").addEventListener("click",()=>auth.signOut().catch(e=>alert("Logout failed: "+e.message)));
+auth.onAuthStateChanged(user=>{
+clearSubscriptions();connected=false;settings=null;editing=false;saving=false;
+$("login").style.display=user?"none":"block";$("app").style.display=user?"block":"none";$("logout").hidden=!user;
+if(user){text("loginMessage","");$("password").value="";start()}
+else{["temperature","humidity","day","hours"].forEach(k=>text(k,"—"));badge("connection","Not connected");updateButtons()}
+});
+</script></body></html>
